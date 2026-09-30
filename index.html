@@ -1,1275 +1,538 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nathan Der</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
-:root {
-  --bg: #080809;
-  --surface: #0f0f11;
-  --surface2: #161619;
-  --border: rgba(255,255,255,0.06);
-  --border-md: rgba(255,255,255,0.1);
-  --text-primary: #ede9e1;
-  --text-secondary: #6e6b66;
-  --text-muted: #3d3b38;
-  --accent: #c9a96e;
-  --accent2: #8b7355;
-  --accent-rgb: 201,169,110;
-  --font-display: 'Cormorant Garamond', serif;
-  --font-sans: 'Syne', sans-serif;
-}
-
-html { scroll-behavior: smooth; }
-
-body {
-  background: var(--bg);
-  color: var(--text-primary);
-  font-family: var(--font-sans);
-  font-size: 14px;
-  line-height: 1.6;
-  overflow-x: hidden;
-  cursor: none;
-}
-
-/* ── Noise overlay ── */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
-  opacity: 0.022;
-  pointer-events: none;
-  z-index: 9000;
-}
-
-/* ── Custom Cursor ── */
-#cursor-dot {
-  position: fixed;
-  width: 6px; height: 6px;
-  background: var(--accent);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 9999;
-  transform: translate(-50%,-50%);
-}
-#cursor-ring {
-  position: fixed;
-  width: 36px; height: 36px;
-  border: 1px solid rgba(var(--accent-rgb),.35);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 9998;
-  transform: translate(-50%,-50%);
-  transition: width .35s cubic-bezier(.25,.46,.45,.94),
-              height .35s cubic-bezier(.25,.46,.45,.94),
-              border-color .35s;
-}
-#cursor-ring.hovered { width: 56px; height: 56px; border-color: rgba(var(--accent-rgb),.6); }
-#cursor-ring.clicked { width: 22px; height: 22px; }
-
-/* ── Nav ── */
-nav {
-  position: fixed; top: 0; left: 0; right: 0;
-  z-index: 500;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.4rem 3rem;
-  transition: background .4s, backdrop-filter .4s;
-}
-nav.scrolled {
-  background: rgba(8,8,9,.88);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border);
-}
-.nav-logo {
-  font-family: var(--font-display);
-  font-size: 1.15rem; font-weight: 300;
-  letter-spacing: .06em;
-  color: var(--text-primary);
-  text-decoration: none;
-}
-.nav-logo span { color: var(--accent); }
-
-.nav-links { display: flex; gap: 2.5rem; list-style: none; }
-.nav-links a {
-  color: var(--text-secondary);
-  text-decoration: none;
-  font-size: 11px; letter-spacing: .14em;
-  text-transform: uppercase;
-  transition: color .3s;
-  position: relative;
-}
-.nav-links a::after {
-  content: '';
-  position: absolute;
-  bottom: -4px; left: 0;
-  width: 0; height: 1px;
-  background: var(--accent);
-  transition: width .35s ease;
-}
-.nav-links a:hover { color: var(--accent); }
-.nav-links a:hover::after { width: 100%; }
-
-/* ── HERO ── */
-#hero {
-  position: relative;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-}
-#hero-canvas {
-  position: absolute; inset: 0; z-index: 0;
-}
-.hero-inner {
-  position: relative; z-index: 2;
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 0 3rem;
-  width: 100%;
-}
-.hero-eyebrow {
-  display: flex; align-items: center; gap: 1rem;
-  font-size: 11px; letter-spacing: .25em;
-  text-transform: uppercase; color: var(--accent);
-  margin-bottom: 2rem;
-  opacity: 0; transform: translateY(20px);
-  animation: fadeUp .8s ease .3s forwards;
-}
-.hero-eyebrow::before {
-  content: ''; display: block;
-  width: 40px; height: 1px; background: var(--accent);
-}
-.hero-name {
-  font-family: var(--font-display);
-  font-size: clamp(4rem, 9vw, 8rem);
-  font-weight: 300; line-height: .95;
-  margin-bottom: .4rem;
-  opacity: 0; transform: translateY(30px);
-  animation: fadeUp .9s ease .5s forwards;
-}
-.hero-name em { font-style: italic; color: var(--accent); }
-
-.hero-typewriter {
-  font-family: var(--font-display);
-  font-size: clamp(1.2rem, 2.5vw, 2rem);
-  font-weight: 300; font-style: italic;
-  color: var(--text-secondary);
-  margin-bottom: 3rem;
-  min-height: 2.5rem;
-  opacity: 0;
-  animation: fadeIn .6s ease 1.1s forwards;
-}
-#typewriter-text::after {
-  content: '|'; color: var(--accent);
-  animation: blink 1s step-end infinite;
-}
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-
-.hero-desc {
-  max-width: 440px;
-  color: var(--text-secondary);
-  font-size: 14px; line-height: 1.9;
-  margin-bottom: 3.5rem;
-  opacity: 0;
-  animation: fadeUp .8s ease 1.3s forwards;
-}
-.hero-cta {
-  display: flex; gap: 1.5rem; align-items: center;
-  opacity: 0;
-  animation: fadeUp .8s ease 1.5s forwards;
-}
-
-/* Buttons */
-.btn-primary {
-  padding: .9rem 2.2rem;
-  background: var(--accent); color: #080809;
-  font-family: var(--font-sans);
-  font-size: 11px; font-weight: 600;
-  letter-spacing: .12em; text-transform: uppercase;
-  text-decoration: none; display: inline-block;
-  position: relative; overflow: hidden;
-  transition: color .35s;
-}
-.btn-primary::before {
-  content: ''; position: absolute; inset: 0;
-  background: #0a0a0b;
-  transform: translateY(101%);
-  transition: transform .4s cubic-bezier(.76,0,.24,1);
-}
-.btn-primary:hover { color: var(--accent); }
-.btn-primary:hover::before { transform: translateY(0); }
-.btn-primary span { position: relative; z-index: 1; }
-
-.btn-ghost {
-  padding: .9rem 2.2rem;
-  border: 1px solid var(--border-md); color: var(--text-secondary);
-  font-family: var(--font-sans);
-  font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
-  text-decoration: none; display: inline-block;
-  position: relative; overflow: hidden;
-  transition: color .35s, border-color .35s;
-}
-.btn-ghost::before {
-  content: ''; position: absolute; inset: 0;
-  background: var(--accent);
-  transform: translateY(101%);
-  transition: transform .4s cubic-bezier(.76,0,.24,1);
-}
-.btn-ghost:hover { color: #080809; border-color: var(--accent); }
-.btn-ghost:hover::before { transform: translateY(0); }
-.btn-ghost span { position: relative; z-index: 1; }
-
-/* Scroll hint */
-.hero-scroll {
-  position: absolute; bottom: 2.5rem; left: 50%;
-  transform: translateX(-50%);
-  display: flex; flex-direction: column;
-  align-items: center; gap: .6rem;
-  opacity: 0;
-  animation: fadeIn .8s ease 2.2s forwards;
-}
-.scroll-track {
-  width: 1px; height: 60px;
-  background: var(--border-md);
-  position: relative; overflow: hidden;
-}
-.scroll-track::after {
-  content: ''; position: absolute;
-  top: -100%; left: 0; right: 0; height: 40%;
-  background: var(--accent);
-  animation: scrollDown 2s ease-in-out infinite;
-}
-@keyframes scrollDown { 0%{top:-100%} 100%{top:200%} }
-.scroll-label {
-  font-size: 9px; letter-spacing: .25em;
-  text-transform: uppercase; color: var(--text-muted);
-  writing-mode: vertical-rl;
-}
-
-/* ── Sections ── */
-.sec { padding: 8rem 3rem; max-width: 1100px; margin: 0 auto; }
-.sec-full { padding: 8rem 0; }
-.sec-full .sec-inner { max-width: 1100px; margin: 0 auto; padding: 0 3rem; }
-.sec-header {
-  display: flex; align-items: center;
-  gap: 1.5rem; margin-bottom: 5rem;
-}
-.sec-num { font-size: 11px; color: var(--accent); letter-spacing: .15em; }
-.sec-title {
-  font-family: var(--font-display);
-  font-size: clamp(2rem, 4vw, 3.2rem); font-weight: 300;
-}
-.sec-line { flex: 1; height: 1px; background: var(--border); }
-
-/* ── Reveal ── */
-.reveal {
-  opacity: 0; transform: translateY(36px);
-  transition: opacity .75s ease, transform .75s ease;
-}
-.reveal.up { opacity: 1; transform: translateY(0); }
-
-/* ── ABOUT ── */
-#about {
-  background: var(--surface);
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-}
-.about-grid {
-  display: grid;
-  grid-template-columns: 1fr 380px;
-  gap: 5rem; align-items: start;
-}
-.about-text p {
-  color: var(--text-secondary);
-  line-height: 1.95; margin-bottom: 1.4rem; font-size: 14px;
-}
-.about-text p.lead {
-  font-family: var(--font-display);
-  font-size: 1.35rem; font-weight: 300;
-  color: var(--text-primary); line-height: 1.65;
-}
-.stat-strip { display: flex; flex-direction: column; border: 1px solid var(--border); }
-.stat-block {
-  padding: 2rem; border-bottom: 1px solid var(--border);
-  position: relative; overflow: hidden;
-  transition: background .35s;
-}
-.stat-block:last-child { border-bottom: none; }
-.stat-block::before {
-  content: ''; position: absolute;
-  left: 0; top: 0; bottom: 0; width: 2px;
-  background: var(--accent);
-  transform: scaleY(0);
-  transition: transform .4s cubic-bezier(.76,0,.24,1);
-  transform-origin: bottom;
-}
-.stat-block:hover::before { transform: scaleY(1); }
-.stat-block:hover { background: var(--surface2); }
-.stat-val {
-  font-family: var(--font-display);
-  font-size: 3rem; font-weight: 300;
-  color: var(--accent); line-height: 1; margin-bottom: .3rem;
-}
-.stat-lbl {
-  font-size: 10px; letter-spacing: .12em;
-  text-transform: uppercase; color: var(--text-muted);
-}
-
-/* ── SKILLS ── */
-#skills { background: var(--bg); }
-.skills-tabs {
-  display: flex; gap: 0;
-  border-bottom: 1px solid var(--border); margin-bottom: 3rem;
-}
-.skill-tab {
-  padding: .75rem 1.8rem;
-  font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
-  color: var(--text-muted); cursor: pointer;
-  border-bottom: 2px solid transparent; margin-bottom: -1px;
-  transition: color .3s, border-color .3s; user-select: none;
-}
-.skill-tab.active { color: var(--accent); border-color: var(--accent); }
-.skill-tab:hover:not(.active) { color: var(--text-secondary); }
-.skill-panels { position: relative; min-height: 280px; }
-.skill-panel { display: none; }
-.skill-panel.active { display: block; }
-.skill-bars { display: flex; flex-direction: column; gap: 1.6rem; }
-.skill-bar-header {
-  display: flex; justify-content: space-between;
-  align-items: baseline; margin-bottom: .6rem;
-}
-.skill-bar-name { font-size: 13px; color: var(--text-primary); letter-spacing: .04em; }
-.skill-bar-pct {
-  font-family: var(--font-display);
-  font-size: 1.1rem; color: var(--accent); font-weight: 300;
-}
-.skill-bar-track {
-  height: 1px; background: var(--border-md);
-  position: relative; overflow: visible;
-}
-.skill-bar-fill {
-  position: absolute; left: 0; top: 0; bottom: 0; height: 1px;
-  background: var(--accent); width: 0;
-  transition: width 1.2s cubic-bezier(.25,.46,.45,.94);
-}
-.skill-bar-fill::after {
-  content: ''; position: absolute;
-  right: -3px; top: -3px;
-  width: 7px; height: 7px;
-  border-radius: 50%; background: var(--accent);
-}
-
-/* ── EXPERIENCE ── */
-#experience {
-  background: var(--surface);
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-}
-.timeline { position: relative; padding-left: 2rem; }
-.timeline::before {
-  content: ''; position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 1px; background: var(--border);
-}
-.tl-item { position: relative; padding: 0 0 4rem 3rem; }
-.tl-item:last-child { padding-bottom: 0; }
-.tl-dot {
-  position: absolute; left: -2rem; top: .35rem;
-  width: 5px; height: 5px; border-radius: 50%;
-  background: var(--text-muted);
-  transform: translateX(-.5px);
-  transition: background .3s, box-shadow .3s;
-}
-.tl-item:hover .tl-dot {
-  background: var(--accent);
-  box-shadow: 0 0 0 4px rgba(var(--accent-rgb),.15);
-}
-.tl-year { font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--accent); margin-bottom: .5rem; }
-.tl-company { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: .7rem; }
-.tl-role {
-  font-family: var(--font-display);
-  font-size: 1.7rem; font-weight: 300;
-  color: var(--text-primary); margin-bottom: 1rem; line-height: 1.2;
-}
-.tl-desc {
-  color: var(--text-secondary); font-size: 13px;
-  line-height: 1.85; max-width: 600px; margin-bottom: 1.2rem;
-}
-.tags { display: flex; flex-wrap: wrap; gap: .5rem; }
-.tag {
-  padding: .2rem .7rem;
-  border: 1px solid var(--border);
-  font-size: 10px; letter-spacing: .1em;
-  text-transform: uppercase; color: var(--text-muted);
-  transition: border-color .3s, color .3s;
-}
-.tl-item:hover .tag { border-color: rgba(var(--accent-rgb),.3); color: var(--accent2); }
-.tl-expand-btn {
-  margin-top: 1rem;
-  background: none; border: none;
-  font-family: var(--font-sans);
-  font-size: 10px; letter-spacing: .15em; text-transform: uppercase;
-  color: var(--text-muted); cursor: pointer;
-  display: flex; align-items: center; gap: .5rem;
-  padding: 0; transition: color .3s;
-}
-.tl-expand-btn:hover { color: var(--accent); }
-.tl-expand-icon {
-  width: 16px; height: 16px;
-  border: 1px solid currentColor;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 14px; line-height: 1;
-  transition: transform .35s;
-}
-.tl-expand-btn.open .tl-expand-icon { transform: rotate(45deg); }
-.tl-drawer {
-  overflow: hidden; max-height: 0;
-  transition: max-height .5s cubic-bezier(.25,.46,.45,.94), opacity .4s;
-  opacity: 0;
-}
-.tl-drawer.open { opacity: 1; }
-.tl-drawer-inner {
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--border); margin-top: 1.5rem;
-}
-.tl-drawer-inner ul { list-style: none; display: flex; flex-direction: column; gap: .8rem; }
-.tl-drawer-inner li {
-  font-size: 13px; color: var(--text-secondary);
-  line-height: 1.7; padding-left: 1.2rem; position: relative;
-}
-.tl-drawer-inner li::before { content: '—'; position: absolute; left: 0; color: var(--accent); }
-
-/* ── PROJECTS ── */
-#projects { background: var(--bg); }
-.projects-track-wrapper { position: relative; width: 100%; overflow: hidden; }
-.projects-track {
-  display: flex; gap: 1.5rem;
-  padding: 0 3rem 2rem;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-  cursor: grab;
-}
-.projects-track:active { cursor: grabbing; }
-.projects-track::-webkit-scrollbar { display: none; }
-.proj-card {
-  flex: 0 0 380px; height: 500px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  scroll-snap-align: start;
-  position: relative; overflow: hidden;
-  transition: border-color .4s;
-  display: flex; flex-direction: column; justify-content: flex-end;
-}
-.proj-card:hover { border-color: rgba(var(--accent-rgb),.35); }
-.proj-card-bg {
-  position: absolute; inset: 0; opacity: .06;
-  background-size: 30px 30px;
-  background-image:
-    linear-gradient(var(--border-md) 1px, transparent 1px),
-    linear-gradient(90deg, var(--border-md) 1px, transparent 1px);
-  transition: opacity .4s;
-}
-.proj-card:hover .proj-card-bg { opacity: .14; }
-.proj-card-num {
-  position: absolute; top: 2rem; right: 2rem;
-  font-family: var(--font-display);
-  font-size: 5rem; font-weight: 300;
-  color: var(--text-muted); opacity: .2; line-height: 1;
-  transition: opacity .4s, color .4s;
-}
-.proj-card:hover .proj-card-num { opacity: .4; color: var(--accent); }
-.proj-card-body {
-  position: relative; z-index: 2; padding: 2.5rem;
-  background: linear-gradient(to top, var(--surface) 60%, transparent);
-}
-.proj-card-type {
-  font-size: 10px; letter-spacing: .18em;
-  text-transform: uppercase; color: var(--accent); margin-bottom: .7rem;
-}
-.proj-card-name {
-  font-family: var(--font-display);
-  font-size: 1.6rem; font-weight: 300;
-  color: var(--text-primary); margin-bottom: .8rem; line-height: 1.2;
-}
-.proj-card-desc {
-  font-size: 13px; color: var(--text-secondary);
-  line-height: 1.8; margin-bottom: 1.5rem;
-}
-.proj-card-link {
-  display: inline-flex; align-items: center; gap: .5rem;
-  font-size: 10px; letter-spacing: .15em; text-transform: uppercase;
-  color: var(--text-muted); text-decoration: none; transition: color .3s;
-}
-.proj-card:hover .proj-card-link { color: var(--accent); }
-.proj-arrow { transition: transform .35s; }
-.proj-card:hover .proj-arrow { transform: translateX(4px); }
-.track-nav {
-  display: flex; gap: 1rem;
-  padding: 1.5rem 3rem 0; align-items: center;
-}
-.track-btn {
-  width: 40px; height: 40px;
-  border: 1px solid var(--border-md);
-  background: none; color: var(--text-secondary);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 18px; cursor: pointer;
-  transition: border-color .3s, color .3s, background .3s;
-}
-.track-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(var(--accent-rgb),.06); }
-.track-dots { display: flex; gap: .5rem; margin-left: auto; }
-.track-dot {
-  width: 24px; height: 1px;
-  background: var(--border-md);
-  transition: background .3s, width .3s; cursor: pointer;
-}
-.track-dot.active { background: var(--accent); width: 40px; }
-
-/* ── CONTACT ── */
-#contact {
-  background: var(--surface);
-  border-top: 1px solid var(--border);
-}
-.contact-split {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 6rem; align-items: start;
-}
-.contact-headline {
-  font-family: var(--font-display);
-  font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 300;
-  line-height: 1.1; margin-bottom: 1.5rem;
-}
-.contact-headline em { font-style: italic; color: var(--accent); }
-.contact-sub {
-  color: var(--text-secondary); font-size: 14px;
-  line-height: 1.85; margin-bottom: 3rem; max-width: 400px;
-}
-.contact-channels { display: flex; flex-direction: column; }
-.channel-link {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 1.4rem 0;
-  border-bottom: 1px solid var(--border);
-  text-decoration: none; color: var(--text-secondary);
-  font-size: 13px;
-  transition: color .3s, padding-left .3s;
-  position: relative; overflow: hidden;
-}
-.channel-link::before {
-  content: ''; position: absolute;
-  left: 0; top: 0; bottom: 0; width: 0;
-  background: rgba(var(--accent-rgb),.06);
-  transition: width .35s ease;
-}
-.channel-link:hover { color: var(--accent); padding-left: .7rem; }
-.channel-link:hover::before { width: 100%; }
-.channel-label {
-  font-size: 9px; letter-spacing: .18em;
-  text-transform: uppercase; color: var(--text-muted);
-}
-.channel-arrow { font-size: 1rem; transition: transform .3s; }
-.channel-link:hover .channel-arrow { transform: translate(4px,-4px); }
-
-/* Contact form */
-.contact-form { display: flex; flex-direction: column; gap: 0; }
-.form-field {
-  position: relative;
-  border-bottom: 1px solid var(--border);
-  padding: 1.4rem 0 .5rem;
-  transition: border-color .3s;
-}
-.form-field:focus-within { border-color: var(--accent); }
-.form-label {
-  position: absolute; top: 1.4rem; left: 0;
-  font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
-  color: var(--text-muted);
-  transition: top .25s, font-size .25s, color .25s;
-  pointer-events: none;
-}
-.form-input {
-  width: 100%; background: none; border: none; outline: none;
-  color: var(--text-primary); font-family: var(--font-sans);
-  font-size: 14px; padding-top: 1rem; resize: none;
-}
-.form-input:focus + .form-label,
-.form-input:not(:placeholder-shown) + .form-label {
-  top: 0; font-size: 9px; color: var(--accent);
-}
-.form-input::placeholder { color: transparent; }
-.form-submit { margin-top: 2rem; align-self: flex-start; }
-
-/* ── Footer ── */
-footer {
-  padding: 2rem 3rem;
-  border-top: 1px solid var(--border);
-  display: flex; justify-content: space-between; align-items: center;
-  max-width: 1100px; margin: 0 auto;
-}
-.footer-copy, .footer-tag {
-  font-size: 10px; color: var(--text-muted); letter-spacing: .1em;
-}
-
-/* ── Animations ── */
-@keyframes fadeUp {
-  from { opacity:0; transform:translateY(24px); }
-  to   { opacity:1; transform:translateY(0); }
-}
-@keyframes fadeIn { from{opacity:0} to{opacity:1} }
-
-/* ── Responsive ── */
-@media (max-width: 900px) {
-  nav { padding: 1.2rem 1.5rem; }
-  .nav-links { display: none; }
-  .sec { padding: 5rem 1.5rem; }
-  .sec-full .sec-inner { padding: 0 1.5rem; }
-  .about-grid { grid-template-columns: 1fr; gap: 3rem; }
-  .contact-split { grid-template-columns: 1fr; gap: 3rem; }
-  .projects-track { padding: 0 1.5rem 2rem; }
-  .track-nav { padding: 1.5rem 1.5rem 0; }
-  .proj-card { flex: 0 0 300px; height: 420px; }
-  footer { padding: 1.5rem; flex-direction: column; gap: .5rem; text-align: center; }
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Nathan Der — building at the intersection of applied AI, software engineering, and business systems.">
+  <title>Nathan Der — AI · Software · Business</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Manrope:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <div class="scroll-progress" aria-hidden="true"><span></span></div>
+  <div class="cursor-orb" aria-hidden="true"></div>
+  <header class="site-nav" id="site-nav">
+    <a class="brand" href="#top" aria-label="Nathan Der home">ND</a>
+    <nav aria-label="Primary navigation">
+      <a href="#convergence">Story</a>
+      <a href="#proof">Work</a>
+      <a href="#experience">Experience</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
 
-<div id="cursor-dot"></div>
-<div id="cursor-ring"></div>
+  <main id="top">
+    <section class="hero chapter chapter-light pinned">
+      <div class="pin">
+      <div class="chapter-index">00 / INTRODUCTION</div>
+      <div class="chaos" aria-hidden="true"></div>
+      <div class="scan" aria-hidden="true"></div>
+      <div class="hero-copy js-reveal">
+        <p class="kicker">Nathan Der · Toronto, Canada</p>
+        <h1>I build systems<br>from <em>problem</em><br>to <em>production.</em></h1>
+        <p class="hero-sub">Applied AI <span>·</span> Software Engineering <span>·</span> Business Systems</p>
+      </div>
+      <div class="hero-rail" aria-hidden="true"><span>Problem</span><b><u></u></b><span>Production</span></div>
+      <div class="scroll-cue" aria-hidden="true">
+        <span>Scroll to explore</span>
+        <i></i>
+      </div>
+      </div>
+    </section>
 
-<!-- NAV -->
-<nav id="main-nav">
-  <a class="nav-logo" href="#hero">Nathan<span> </span>Der</a>
-  <ul class="nav-links">
-    <li><a href="#about">About</a></li>
-    <li><a href="#skills">Skills</a></li>
-    <li><a href="#experience">Experience</a></li>
-    <li><a href="#projects">Projects</a></li>
-    <li><a href="#contact">Contact</a></li>
-  </ul>
-</nav>
+    <section id="convergence" class="story" aria-label="The convergence of AI, software, and business">
+      <article class="chapter discipline chapter-dark ai-chapter">
+        <div class="chapter-index">01 / APPLIED AI</div>
+        <div class="discipline-layout">
+          <div class="discipline-number">01</div>
+          <div class="discipline-copy js-reveal">
+            <p class="kicker">Applied AI</p>
+            <h2>I build AI<br><em>beyond the</em><br>prototype.</h2>
+            <p class="chapter-story">At RBC I led ATLAS from POC to development in 4 months — designing a hybrid RAG pipeline (semantic + BM25 retrieval, reranking, contextual retrieval, tiered LLM routing) grounded in 300+ FAQs, 100+ documents, and 30+ meeting transcripts. Answer accuracy improved from ~50% to ~75% in requirements testing.</p>
+            <p class="chapter-note">pgvector · FastEmbed · RAG · BM25 · Reranking · LLM Orchestration · Ollama · LangGraph</p>
+          </div>
+        </div>
+        <div class="ambient ambient-ai" aria-hidden="true"><i></i><i></i><i></i></div>
+        <div class="handoff-marker handoff-ai" aria-hidden="true"><span>AI</span><i></i><i></i><i></i></div>
+      </article>
 
-<!-- HERO -->
-<section id="hero">
-  <canvas id="hero-canvas"></canvas>
-  <div class="hero-inner">
-    <div class="hero-eyebrow">Business Technology Analyst</div>
-    <h1 class="hero-name">Nathan<br><em>Der</em></h1>
-    <div class="hero-typewriter"><span id="typewriter-text"></span></div>
-    <p class="hero-desc">Bridging the gap between business strategy and technical execution. I translate complex systems into clear solutions that drive real organizational value.</p>
-    <div class="hero-cta">
-      <a class="btn-primary" href="#contact"><span>Get in touch</span></a>
-      <a class="btn-ghost" href="#experience"><span>View work</span></a>
-    </div>
-  </div>
-  <div class="hero-scroll">
-    <div class="scroll-track"></div>
-    <span class="scroll-label">Scroll</span>
-  </div>
-</section>
-
-<!-- ABOUT -->
-<section id="about">
-  <div class="sec">
-    <div class="sec-header reveal">
-      <span class="sec-num">01</span>
-      <h2 class="sec-title">About</h2>
-      <div class="sec-line"></div>
-    </div>
-    <div class="about-grid">
-      <div class="about-text reveal">
-        <p class="lead">A Business Technology Management professional with a passion for making systems smarter, processes leaner, and decisions data-driven.</p>
-        <p>With a background spanning both academic research and hands-on professional environments, I bring a unique perspective to every engagement, one that respects technical depth while never losing sight of business outcomes.</p>
-        <p>My work sits at the intersection of people, processes, and technology. I thrive in environments where ambiguity is the norm and clarity is the deliverable.</p>
-      </div>
-      <div class="stat-strip reveal">
-        <div class="stat-block">
-          <div class="stat-val" data-count="2" data-suffix="+">0</div>
-          <div class="stat-lbl">Years of experience</div>
-        </div>
-        <div class="stat-block">
-          <div class="stat-val" data-count="10" data-suffix="+">0</div>
-          <div class="stat-lbl">Projects delivered</div>
-        </div>
-        <div class="stat-block">
-          <div class="stat-val" data-count="8" data-suffix="">0</div>
-          <div class="stat-lbl">Tools &amp; platforms mastered</div>
-        </div>
-        <div class="stat-block">
-          <div class="stat-val" data-text="BTM">—</div>
-          <div class="stat-lbl">Business Technology Management</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- SKILLS -->
-<section id="skills">
-  <div class="sec">
-    <div class="sec-header reveal">
-      <span class="sec-num">02</span>
-      <h2 class="sec-title">Expertise</h2>
-      <div class="sec-line"></div>
-    </div>
-    <div class="skills-tabs reveal">
-      <div class="skill-tab active" data-tab="analysis">Business &amp; Analytical</div>
-      <div class="skill-tab" data-tab="technical">Technical</div>
-      <div class="skill-tab" data-tab="data">Tools</div>
-      <div class="skill-tab" data-tab="soft">Leadership</div>
-    </div>
-    <div class="skill-panels reveal">
-      <div class="skill-panel active" id="tab-analysis">
-        <div class="skill-bars">
-          <div class="skill-bar-item">
-            <div class="skill-bar-header"><span class="skill-bar-name">Requirements Gathering</span><span class="skill-bar-pct">95%</span></div>
-            <div class="skill-bar-track"><div class="skill-bar-fill" data-width="95"></div></div>
-          </div>
-          <div class="skill-bar-item">
-            <div class="skill-bar-header"><span class="skill-bar-name">Process Mapping</span><span class="skill-bar-pct">90%</span></div>
-            <div class="skill-bar-track"><div class="skill-bar-fill" data-width="90"></div></div>
-          </div>
-          <div class="skill-bar-item">
-            <div class="skill-bar-header"><span class="skill-bar-name">Stakeholder Management</span><span class="skill-bar-pct">92%</span></div>
-            <div class="skill-bar-track"><div class="skill-bar-fill" data-width="92"></div></div>
-          </div>
-          <div class="skill-bar-item">
-            <div class="skill-bar-header"><span class="skill-bar-name">Gap &amp; Data Visualization</span><span class="skill-bar-pct">88%</span></div>
-            <div class="skill-bar-track"><div class="skill-bar-fill" data-width="88"></div></div>
-          </div>
-          <div class="skill-bar-item">
-            <div class="skill-bar-header"><span class="skill-bar-name">Use Case Modeling</span><span class="skill-bar-pct">85%</span></div>
-            <div class="skill-bar-track"><div class="skill-bar-fill" data-width="85"></div></div>
-          </div>
-        </div>
-      </div>
-      <div class="skill-panel" id="tab-technical">
-        <div class="skill-bars">
-          <div class="skill-bar-item">
-            <div class="skill-bar-header"><span class="skill-bar-name">Python</span><span class="skill-bar-pct">88%</span></div>
-            <div class="skill-bar-track"><div class="skill-bar-fill" data-width="90"></div></div>
-          </div>
-          <div class="skill-bar-item">
-            <div class="skill-bar-header"><span class="skill-bar-name">Systems Integration</span><span class="skill-bar-pct">82%</span></div>
-            <div class="skill-bar-track"><div class="skill-bar-fill" data-width="82"></div></div>
-          </div>
-          <div class="skill-bar-item">
-            <div class="skill-bar-header"><span class="skill-bar-name">SQL (MySQL, SMSS, PopSQL)</span><span class="skill-bar-pct">75%</span></div>
-            <div class="skill-bar-track"><div class="skill-bar-fill" data-width="95"></div></div>
-          </div>
-          <div class="skill-bar-item">
-            <div class="skill-bar-header"><span class="skill-bar-name">Technical Documentation</span><span class="skill-bar-pct">93%</span></div>
-            <div class="skill-bar-track"><div class="skill-bar-fill" data-width="93"></div></div>
-          </div>
-          <div class="skill-bar-item">
-            <div class="skill-bar-header"><span class="skill-bar-name">Data Modeling</span><span class="skill-bar-pct">80%</span></div>
-            <div class="skill-bar-track"><div class="skill-bar-fill" data-width="85"></div></div>
-          </div>
-        </div>
-      </div>
-      <div class="skill-panel" id="tab-data">
-        <div class="skill-bars">
-          <div class="skill-bar-item">
-            <div class="skill-bar-header"><span class="skill-bar-name">Microsoft Office 365 (Excel, Powerpoint, Visio)</span><span class="skill-bar-pct">85%</span></div>
-            <div class="skill-bar-track"><div class="skill-bar-fill" data-width="98"></div></div>
-          </div>
-          <div class="skill-bar-item">
-            <div class="skill-bar-header"><span class="skill-bar-name">Tableau</span><span class="skill-bar-pct">88%</span></div>
-            <div class="skill-bar-track"><div class="skill-bar-fill" data-width="83"></div></div>
-          </div>
-          <div class="skill-bar-item">
-            <div class="skill-bar-header"><span class="skill-bar-name">SQL (MySQL, PopSQL, SMSS, Visual Studio Code)</span><span class="skill-bar-pct">92%</span></div>
-            <div class="skill-bar-track"><div class="skill-bar-fill" data-width="95"></div></div>
-          </div>
-        </div>
-      </div>
-      <div class="skill-panel" id="tab-soft">
-        <div class="skill-bars">
-          <div class="skill-bar-item">
-            <div class="skill-bar-header"><span class="skill-bar-name">Agile / Scrum</span><span class="skill-bar-pct">90%</span></div>
-            <div class="skill-bar-track"><div class="skill-bar-fill" data-width="85"></div></div>
-          </div>
-          <div class="skill-bar-item">
-            <div class="skill-bar-header"><span class="skill-bar-name">Executive Presentations</span><span class="skill-bar-pct">93%</span></div>
-            <div class="skill-bar-track"><div class="skill-bar-fill" data-width="93"></div></div>
-          </div>
-          <div class="skill-bar-item">
-            <div class="skill-bar-header"><span class="skill-bar-name">Change Management</span><span class="skill-bar-pct">85%</span></div>
-            <div class="skill-bar-track"><div class="skill-bar-fill" data-width="85"></div></div>
-          </div>
-          <div class="skill-bar-item">
-            <div class="skill-bar-header"><span class="skill-bar-name">Workshop Facilitation</span><span class="skill-bar-pct">88%</span></div>
-            <div class="skill-bar-track"><div class="skill-bar-fill" data-width="88"></div></div>
-          </div>
-          <div class="skill-bar-item">
-            <div class="skill-bar-header"><span class="skill-bar-name">Cross-functional Leadership</span><span class="skill-bar-pct">87%</span></div>
-            <div class="skill-bar-track"><div class="skill-bar-fill" data-width="87"></div></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- EXPERIENCE -->
-<section id="experience">
-  <div class="sec">
-    <div class="sec-header reveal">
-      <span class="sec-num">03</span>
-      <h2 class="sec-title">Experience</h2>
-      <div class="sec-line"></div>
-    </div>
-    <div class="timeline">
-      <div class="tl-item reveal">
-        <div class="tl-dot"></div>
-        <div class="tl-year">May 2026 — Present</div>
-        <div class="tl-company">Royal Bank of Canada (RBC)</div>
-        <div class="tl-role">Technology Business Analyst (Co-op)</div>
-        <div class="tl-desc">Gathered and translated business requirements into technical solutions that manage user identities, authentication, and access securely across systems. Collaborated with stakeholders and developers to improve login experiences, enforce security policies, and ensure compliance with privacy and data protection standards.</div>
-        <div class="tags">
-          <span class="tag">Systems Analysis</span>
-          <span class="tag">Stakeholder Mgmt</span>
-          <span class="tag">Agile</span>
-          <span class="tag">Microsoft Visio</span>
-        </div>
-        <button class="tl-expand-btn" data-target="drawer-1">
-          <div class="tl-expand-icon">+</div>
-          Key achievements
-        </button>
-        <div class="tl-drawer" id="drawer-1">
-          <div class="tl-drawer-inner">
-            <ul>
-              <li>Conducted gap analysis on CIAM processes, driving improvements to authentication flows and user experience.</li>
-              <li>Supported integration of identity systems across applications, ensuring consistent and secure user access.</li>
-              <li>Monitored and analyzed access data to identify trends, helping optimize performance and strengthen security controls.</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-      <div class="tl-item reveal">
-        <div class="tl-dot"></div>
-        <div class="tl-year">2024 - 2025</div>
-        <div class="tl-company">TJX Canada</div>
-        <div class="tl-role">Retail Store Coordinator</div>
-        <div class="tl-desc">Supported team performance, optimize customer service, managed inventory, and help implement merchandising and operational strategies to meet store goals.</div>
-        <div class="tags">
-          <span class="tag">KPI Interpretation</span>
-          <span class="tag">Data Analysis</span>
-          <span class="tag">Training</span>
-          <span class="tag">Business Insights</span>
-        </div>
-        <button class="tl-expand-btn" data-target="drawer-2">
-          <div class="tl-expand-icon">+</div>
-          Key achievements
-        </button>
-        <div class="tl-drawer" id="drawer-2">
-          <div class="tl-drawer-inner">
-            <ul>
-              <li>Analyzed sales and inventory data to identify trends, contributing to a 26% weekly sales increase.</li>
-              <li>Translated performance metrics into actionable recommendations for staffing, merchandising, and workflow improvements.</li>
-              <li>Supported execution of store strategies and cross-functional initiatives, boosting operational efficiency and sales performance.</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-      <div class="tl-item reveal">
-        <div class="tl-dot"></div>
-        <div class="tl-year">2025-2026</div>
-        <div class="tl-company">Abercrombie & Fitch Company</div>
-        <div class="tl-role">Brand Ambassador</div>
-        <div class="tl-desc">Supported in-store merchandising strategies using KPIs, collaborated with store teams to drive sales, improve conversion rates, and maintain operational efficiency</div>
-        <div class="tags">
-          <span class="tag">Stakeholder Communication</span>
-          <span class="tag">PRocess Improvement</span>
-          <span class="tag">Point of Sale Software</span>
-        </div>
-        <button class="tl-expand-btn" data-target="drawer-3">
-          <div class="tl-expand-icon">+</div>
-          Key achievements
-        </button>
-        <div class="tl-drawer" id="drawer-3">
-          <div class="tl-drawer-inner">
-            <ul>
-              <li>Analyzed customer behavior and sales data to optimize merchandising, increasing conversion by ~11% month over month.</li>
-              <li>Partnered with store leadership to exceed monthly sales targets by ~22% over five months.</li>
-              <li>Processed 50+ transactions per shift with high accuracy, maintaining efficiency during peak periods.</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- PROJECTS -->
-<section id="projects">
-  <div class="sec-full">
-    <div class="sec-inner">
-      <div class="sec-header reveal">
-        <span class="sec-num">04</span>
-        <h2 class="sec-title">Projects</h2>
-        <div class="sec-line"></div>
-      </div>
-    </div>
-    <div class="projects-track-wrapper reveal">
-      <div class="projects-track" id="proj-track">
-        <div class="proj-card">
-          <div class="proj-card-bg"></div>
-          <div class="proj-card-num">01</div>
-          <div class="proj-card-body">
-            <div class="proj-card-type">Javascript, Typescript, HTML, CSS, Flask, Blockchain</div>
-            <div class="proj-card-name">Crypto Bazaar</div>
-            <div class="proj-card-desc">Developed a decentralized database using blockchain (NEAR wallet) to foster a marketplace financial/crypto transactions.</div>
-            <a href="https://github.com/NeathRand/Crypto_Bazaar" class="proj-card-link">View Code <span class="proj-arrow">→</span></a>
-          </div>
-        </div>
-        <div class="proj-card">
-          <div class="proj-card-bg"></div>
-          <div class="proj-card-num">02</div>
-          <div class="proj-card-body">
-            <div class="proj-card-type">HTML, CSS</div>
-            <div class="proj-card-name">Launch Pad</div>
-            <div class="proj-card-desc">Designed a webpage to help organize and launch applications and webpages in an intuitive and revolutionary way</div>
-            <a href="https://github.com/NeathRand/AI-Writing-Assistant" class="proj-card-link">View Code <span class="proj-arrow">→</span></a>
-          </div>
-        </div>
-        <div class="proj-card">
-          <div class="proj-card-bg"></div>
-          <div class="proj-card-num">03</div>
-          <div class="proj-card-body">
-            <div class="proj-card-type">Python, NLP, React, Flask</div>
-            <div class="proj-card-name">AI Writing Assistant</div>
-            <div class="proj-card-desc">Developed a full-stack AI writing assistant using Python, Flask, and React that leverages NLP to improve business communication through sentence restructuring, tone adjustments, and plagiarism simulation.</div>
-            <a href="https://github.com/NeathRand/AI-Writing-Assistant" class="proj-card-link">View Code <span class="proj-arrow">→</span></a>
-          </div>
-        </div>
-        <div class="proj-card">
-          <div class="proj-card-bg"></div>
-          <div class="proj-card-num">04</div>
-          <div class="proj-card-body">
-            <div class="proj-card-type">NLP, LLM, HTML, CSS, React</div>
-            <div class="proj-card-name">AI UML Generator</div>
-            <div class="proj-card-desc">Developed an AI powered UML generator that produces designs for systems including entity relations, system sequence diagrams, and swim lanes.</div>
-            <a href="https://github.com/NeathRand/UML_Generator" class="proj-card-link">View Code <span class="proj-arrow">→</span></a>
-          </div>
-        </div>
-        <div class="proj-card">
-          <div class="proj-card-bg"></div>
-          <div class="proj-card-num">05</div>
-          <div class="proj-card-body">
-            <div class="proj-card-type">Python, HTML, CSS</div>
-            <div class="proj-card-name">Password Generator</div>
-            <div class="proj-card-desc">Developed a website that helps generate a randomized string of characters.</div>
-            <a href="https://github.com/NeathRand/Password_Generator" class="proj-card-link">View Code <span class="proj-arrow">→</span></a>
-          </div>
-        </div>
-      </div>
-      <div class="track-nav">
-        <button class="track-btn" id="proj-prev">←</button>
-        <button class="track-btn" id="proj-next">→</button>
-        <div class="track-dots" id="track-dots"></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- CONTACT -->
-<section id="contact">
-  <div class="sec">
-    <div class="sec-header reveal">
-      <span class="sec-num">05</span>
-      <h2 class="sec-title">Contact</h2>
-      <div class="sec-line"></div>
-    </div>
-    <div class="contact-split">
-      <div class="reveal">
-        <h2 class="contact-headline">Let's build something <em>meaningful</em> together.</h2>
-        <p class="contact-sub">Whether you're looking for a Business Analyst, a strategic partner, or simply want to connect — I'd love to hear from you.</p>
-        <div class="contact-channels">
-          <a class="channel-link" href="mailto:nathanderr4@gmail.com">
-            <span>nathanderr4@gmail.com</span>
-            <div style="display:flex;align-items:center;gap:.7rem;">
-              <span class="channel-label">Email</span>
-              <span class="channel-arrow">↗</span>
+      <article class="chapter discipline chapter-paper software-chapter pinned">
+        <div class="pin">
+          <div class="chapter-index">02 / ENGINEERING</div>
+          <div class="discipline-layout reverse">
+            <div class="discipline-number">02</div>
+            <div class="discipline-copy js-reveal">
+              <p class="kicker">Software Engineering</p>
+              <h2>Python is my<br><em>foundation.</em></h2>
+              <p class="chapter-story">I engineered ATLAS end-to-end: a reusable ingestion pipeline across Confluence, PDF, CSV, Excel, and transcript sources; a Python/Flask REST backend for IAM workflows; SAML SSO with role-aware session mapping; an MCP integration layer for least-privilege Confluence and Jira access; and admin tooling for FAQ curation, knowledge management, and re-indexing.</p>
+              <p class="chapter-note">Python · Flask · FastAPI · PostgreSQL · pgvector · SAML SSO · MCP · Docker · Git</p>
             </div>
-          </a>
-          <a class="channel-link" href="https://www.linkedin.com/in/nathander/" target="_blank">
-            <span>https://www.linkedin.com/in/nathander/</span>
-            <div style="display:flex;align-items:center;gap:.7rem;">
-              <span class="channel-label">LinkedIn</span>
-              <span class="channel-arrow">↗</span>
+          </div>
+          <div class="pipeline" aria-hidden="true">
+            <div class="pipe-track"><span class="pipe-fill"></span><i class="packet"></i></div>
+            <div class="stage"><b>ingest</b><small data-t="PDF · CSV · Confluence · transcript"></small></div>
+            <div class="stage"><b>chunk</b><small data-t="sanitize → split → embed"></small></div>
+            <div class="stage"><b>index</b><small data-t="pgvector + BM25"></small></div>
+            <div class="stage"><b>retrieve</b><small data-t="hybrid search + rerank"></small></div>
+            <div class="stage"><b>generate</b><small data-t="tiered LLM routing"></small></div>
+            <div class="stage"><b>respond</b><small data-t="200 OK · audit logged"></small></div>
+          </div>
+          <div class="handoff-marker handoff-software" aria-hidden="true"><span>SOFTWARE</span><i></i><i></i><i></i></div>
+        </div>
+      </article>
+
+      <article class="chapter discipline chapter-blue business-chapter pinned">
+        <div class="pin">
+          <div class="chapter-index">03 / PURPOSE</div>
+          <div class="discipline-layout">
+            <div class="discipline-number">03</div>
+            <div class="discipline-copy js-reveal">
+              <p class="kicker">Business Systems</p>
+              <h2>I lead work<br>from idea to<br><em>delivery.</em></h2>
+              <p class="chapter-story">As a Technology Business Analyst at RBC, I directed 3 interns, ran sprint and Kanban planning with full-time engineers, reviewed and approved pull requests, and ran UAT with IAM specialists and non-specialists — diagnosing retrieval failures and tuning context selection based on real user feedback.</p>
+              <p class="chapter-note">IAM · sprint planning · Kanban · Jira · Confluence · UAT · stakeholder alignment</p>
             </div>
-          </a>
-          <a class="channel-link" href="https://github.com/NeathRand" target="_blank">
-            <span>https://github.com/NeathRand</span>
-            <div style="display:flex;align-items:center;gap:.7rem;">
-              <span class="channel-label">GitHub</span>
-              <span class="channel-arrow">↗</span>
+            <div class="req-card" aria-hidden="true">
+              <div class="req-head"><span>Requirements</span><b class="req-count">0 / 5</b></div>
+              <ul>
+                <li class="req"><i class="box"></i><span class="who">Onboarding</span><span class="what">Answer repeat questions</span></li>
+                <li class="req"><i class="box"></i><span class="who">Architecture</span><span class="what">Fit the existing IAM stack</span></li>
+                <li class="req"><i class="box"></i><span class="who">Data</span><span class="what">Draw from approved content</span></li>
+                <li class="req"><i class="box"></i><span class="who">AI governance</span><span class="what">Grounded, reviewable answers</span></li>
+                <li class="req"><i class="box"></i><span class="who">Delivery</span><span class="what">A stable path to pre-prod</span></li>
+              </ul>
+              <div class="req-foot"><span class="bar"><u></u></span><em class="stamp">Delivered</em></div>
             </div>
-          </a>
-          <a class="channel-link" href="#">
-            <span>Toronto, Canada </span>
-            <div style="display:flex;align-items:center;gap:.7rem;">
-              <span class="channel-label">Location</span>
-            </div>
-          </a>
+          </div>
+          <div class="process-line" aria-hidden="true"><i data-label="Stakeholders"></i><i data-label="Requirements"></i><i data-label="UAT"></i><i data-label="Delivery"></i></div>
+          <div class="handoff-marker handoff-business" aria-hidden="true"><span>BUSINESS</span><i></i><i></i><i></i></div>
+        </div>
+      </article>
+
+      <article class="chapter convergence chapter-light" data-scroll-story>
+        <div class="chapter-index">04 / CONVERGENCE</div>
+        <div class="convergence-stage">
+          <p class="kicker">Three disciplines. One way of working.</p>
+          <div class="triad" aria-label="Applied AI, software engineering, and business systems converge in Nathan's work">
+            <svg class="triad-links" aria-hidden="true" viewBox="0 0 100 100" preserveAspectRatio="none">
+              <line class="triad-link link-ai-software" x1="50" y1="16" x2="18" y2="75" />
+              <line class="triad-link link-ai-business" x1="50" y1="16" x2="82" y2="75" />
+              <line class="triad-link link-software-business" x1="18" y1="75" x2="82" y2="75" />
+              <line class="core-link core-ai" x1="50" y1="16" x2="50" y2="52" />
+              <line class="core-link core-software" x1="18" y1="75" x2="50" y2="52" />
+              <line class="core-link core-business" x1="82" y1="75" x2="50" y2="52" />
+            </svg>
+            <div class="triad-node triad-ai"><span class="node-dot"></span><strong>AI</strong><small>INTELLIGENCE</small></div>
+            <div class="triad-node triad-software"><span class="node-dot"></span><strong>SOFTWARE</strong><small>ENGINEERING</small></div>
+            <div class="triad-node triad-business"><span class="node-dot"></span><strong>BUSINESS</strong><small>PURPOSE</small></div>
+            <div class="triad-core"><b class="shock"></b><b class="shock"></b><span>ND</span></div>
+            <i class="pulse"></i><i class="pulse"></i><i class="pulse"></i>
+          </div>
+          <h2 class="split" aria-label="I build here.">I build <em>here.</em></h2>
+          <p class="convergence-copy">I move between understanding the problem, engineering the system, and applying intelligence where it creates meaningful value.</p>
+        </div>
+      </article>
+    </section>
+
+    <section id="proof" class="proof section-shell">
+      <header class="section-heading js-reveal">
+        <p class="section-number">05 / PROOF</p>
+        <h2>One system.<br><em>Three perspectives.</em></h2>
+      </header>
+
+      <article class="case-study">
+        <div class="case-meta js-reveal">
+          <p class="eyebrow">Featured work · Royal Bank of Canada — IAM</p>
+          <h3>ATLAS<br>Enterprise AI Assistant</h3>
+          <p class="case-intro">An internal assistant that turns fragmented IAM knowledge into a governed, retrievable system — guiding employees through onboarding, compliance requests, and credential migration.</p>
+          <div class="stage-row" aria-label="Project evolution">
+            <span>Idea</span><i></i><span>POC</span><i></i><span>MVP</span><i></i><span>Dev</span><i></i><span>Pre-prod</span>
+          </div>
+        </div>
+
+        <div class="lens-grid">
+          <section class="lens js-reveal lens-ai">
+            <span class="lens-num">01</span>
+            <p class="eyebrow">AI lens</p>
+            <h4>Make knowledge retrievable.</h4>
+            <p>Designed hybrid retrieval (semantic + BM25, reranking, contextual retrieval) with tiered LLM routing — grounded in 300+ FAQs, 100+ docs, 30+ transcripts. Accuracy improved from ~50% to ~75% in requirements testing.</p>
+            <div class="micro-tags"><span>RAG</span><span>pgvector</span><span>FastEmbed</span><span>BM25</span><span>Reranking</span></div>
+          </section>
+          <section class="lens js-reveal lens-software">
+            <span class="lens-num">02</span>
+            <p class="eyebrow">Software lens</p>
+            <h4>Turn the idea into a system.</h4>
+            <p>Built the ingestion pipeline (extract, sanitize, chunk, embed, index) across Confluence, PDF, CSV, Excel, and transcripts; Python/Flask REST backend; SAML SSO with AD-group session mapping; and an MCP integration layer for least-privilege Jira and Confluence access.</p>
+            <div class="micro-tags"><span>Python</span><span>Flask</span><span>PostgreSQL</span><span>SAML SSO</span><span>MCP</span></div>
+          </section>
+          <section class="lens js-reveal lens-business">
+            <span class="lens-num">03</span>
+            <p class="eyebrow">Business lens</p>
+            <h4>Build for the workflow.</h4>
+            <p>Directed 3 interns, ran sprint/Kanban planning with full-time engineers, reviewed PRs, and ran UAT with IAM specialists and non-specialists. Designed 7-year audit logging and human-in-the-loop FAQ curation to meet compliance and traceability requirements.</p>
+            <div class="micro-tags"><span>IAM</span><span>Kanban</span><span>UAT</span><span>Audit Logging</span><span>Compliance</span></div>
+          </section>
+        </div>
+      </article>
+    </section>
+
+    <section class="selected-work section-shell">
+      <header class="section-heading compact-heading js-reveal">
+        <p class="section-number">06 / SELECTED WORK</p>
+        <h2>Different problems.<br><em>Same intersection.</em></h2>
+      </header>
+
+      <div class="work-list">
+        <a class="work-row js-reveal" href="https://github.com/NeathRand" target="_blank" rel="noopener noreferrer">
+          <span class="work-index">01</span>
+          <span class="work-name">Personal Search &amp; Memory Engine<span class="work-desc">Local-first AI memory system — hybrid retrieval (full-text + pgvector + RRF) with 384-dim FastEmbed embeddings. Python, PostgreSQL.</span></span>
+          <span class="work-type">AI / SOFTWARE</span>
+          <span class="work-arrow">↗</span>
+        </a>
+        <a class="work-row js-reveal" href="https://github.com/NeathRand" target="_blank" rel="noopener noreferrer">
+          <span class="work-index">02</span>
+          <span class="work-name">Avion Rewards Recommendation Assistant<span class="work-desc">LLM-powered flight redemption advisor combining historical pricing, Avion rates, and partner offers. RBC Hackathon — 4-person team.</span></span>
+          <span class="work-type">AI / BUSINESS / DATA</span>
+          <span class="work-arrow">↗</span>
+        </a>
+        <a class="work-row js-reveal" href="https://github.com/NeathRand/Crypto_Bazaar" target="_blank" rel="noopener noreferrer">
+          <span class="work-index">03</span>
+          <span class="work-name">Crypto Bazaar<span class="work-desc">Decentralized service marketplace on NEAR Protocol — React/JS frontend, two-party blockchain confirmation workflow. HawkHacks.</span></span>
+          <span class="work-type">SOFTWARE / PRODUCT</span>
+          <span class="work-arrow">↗</span>
+        </a>
+      </div>
+    </section>
+
+    <section id="experience" class="experience section-shell dark-section">
+      <header class="section-heading compact-heading js-reveal">
+        <p class="section-number">07 / EXPERIENCE</p>
+        <h2>Where I've<br><em>applied it.</em></h2>
+      </header>
+
+      <div class="experience-list">
+        <article class="experience-row js-reveal">
+          <div class="experience-date">MAY 2026 — PRESENT</div>
+          <div>
+            <p class="eyebrow">Royal Bank of Canada</p>
+            <h3>Technology Business Analyst | Applied AI Engineer</h3>
+            <p class="role-context">Cyber Security · Identity &amp; Access Management</p>
+          </div>
+          <p class="experience-summary">Led end-to-end development of ATLAS, an enterprise AI assistant, from POC to development in 4 months. Directed 3 interns, ran sprint/Kanban planning with full-time engineers, and reviewed and approved pull requests. Designed hybrid RAG pipeline and implemented SAML SSO with role-aware access controls.</p>
+        </article>
+        <article class="experience-row js-reveal">
+          <div class="experience-date">FEB 2023 — JAN 2025</div>
+          <div>
+            <p class="eyebrow">TJX Canada</p>
+            <h3>Retail Sales Associate — Coordinator</h3>
+            <p class="role-context">Operations · Analytics · Floor Planning</p>
+          </div>
+          <p class="experience-summary">Analyzed daily KPIs including Sales Per Available Hour, zone sales, and category performance to support management decisions around staffing, floor planning, and daily priorities.</p>
+        </article>
+        <article class="experience-row js-reveal">
+          <div class="experience-date">TORONTO, ON</div>
+          <div>
+            <p class="eyebrow">Abercrombie &amp; Fitch</p>
+            <h3>Brand Ambassador</h3>
+            <p class="role-context">Customer Experience · Brand Representation</p>
+          </div>
+          <p class="experience-summary">Represented the brand in customer-facing roles, delivering consistent brand experience and supporting in-store sales and operations.</p>
+        </article>
+      </div>
+    </section>
+
+
+
+
+    <section class="method section-shell">
+      <header class="section-heading compact-heading js-reveal">
+        <p class="section-number">08 / HOW I WORK</p>
+        <h2>From ambiguity<br>to <em>working system.</em></h2>
+      </header>
+      <div class="method-flow">
+        <div class="method-step js-reveal"><span>01</span><strong>Discover</strong><p>Understand the user, workflow, constraints, and actual problem.</p></div>
+        <i>→</i>
+        <div class="method-step js-reveal"><span>02</span><strong>Design</strong><p>Translate the problem into architecture, data, and system decisions.</p></div>
+        <i>→</i>
+        <div class="method-step js-reveal"><span>03</span><strong>Build</strong><p>Implement the software, integrations, retrieval, and application logic.</p></div>
+        <i>→</i>
+        <div class="method-step js-reveal"><span>04</span><strong>Validate</strong><p>Test against users, requirements, governance, and technical constraints.</p></div>
+        <i>→</i>
+        <div class="method-step js-reveal"><span>05</span><strong>Iterate</strong><p>Use what the system teaches us to improve the next version.</p></div>
+      </div>
+    </section>
+
+    <section id="contact" class="contact chapter chapter-dark">
+      <div class="chapter-index">09 / CONTACT</div>
+      <div class="contact-inner js-reveal">
+        <p class="kicker">The next problem</p>
+        <h2>What should<br>we build <em>next?</em></h2>
+        <div class="contact-links">
+          <a href="mailto:nathanderr4@gmail.com">Email <span>↗</span></a>
+          <a href="https://www.linkedin.com/in/nathander/" target="_blank" rel="noopener noreferrer">LinkedIn <span>↗</span></a>
+          <a href="https://github.com/NeathRand" target="_blank" rel="noopener noreferrer">GitHub <span>↗</span></a>
         </div>
       </div>
-      <div class="reveal">
-        <form class="contact-form" onsubmit="handleSubmit(event)">
-          <div class="form-field">
-            <input class="form-input" type="text" id="f-name" placeholder="Name" required>
-            <label class="form-label" for="f-name">Name</label>
-          </div>
-          <div class="form-field">
-            <input class="form-input" type="email" id="f-email" placeholder="Email" required>
-            <label class="form-label" for="f-email">Email</label>
-          </div>
-          <div class="form-field">
-            <input class="form-input" type="text" id="f-subject" placeholder="Subject">
-            <label class="form-label" for="f-subject">Subject</label>
-          </div>
-          <div class="form-field">
-            <textarea class="form-input" id="f-msg" rows="4" placeholder="Message" required></textarea>
-            <label class="form-label" for="f-msg">Message</label>
-          </div>
-          <div class="form-submit">
-            <button type="submit" class="btn-primary"><span>Send message</span></button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-</section>
+      <footer>
+        <span>2026 Nathan Der</span>
+        <span>Toronto, Canada</span>
+        <span>AI · Software · Business</span>
+      </footer>
+    </section>
+  </main>
 
-<!-- FOOTER -->
-<footer>
-  <span class="footer-copy">© 2026 Nathan Der. All rights reserved.</span>
-  <span class="footer-tag">Business Technology · Data Analysis · Systems</span>
-</footer>
+  <script>
+    (() => {
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const clamp = (n, min = 0, max = 1) => Math.min(max, Math.max(min, n));
 
-<script>
-/* ── Cursor ── */
-const dot = document.getElementById('cursor-dot');
-const ring = document.getElementById('cursor-ring');
-let mx=0,my=0,rx=0,ry=0;
-document.addEventListener('mousemove',e=>{
-  mx=e.clientX; my=e.clientY;
-  dot.style.left=mx+'px'; dot.style.top=my+'px';
-});
-(function anim(){
-  rx+=(mx-rx)*.13; ry+=(my-ry)*.13;
-  ring.style.left=rx+'px'; ring.style.top=ry+'px';
-  requestAnimationFrame(anim);
-})();
-document.querySelectorAll('a,button,.proj-card,.skill-tab,.stat-block,.channel-link').forEach(el=>{
-  el.addEventListener('mouseenter',()=>ring.classList.add('hovered'));
-  el.addEventListener('mouseleave',()=>ring.classList.remove('hovered'));
-});
-document.addEventListener('mousedown',()=>ring.classList.add('clicked'));
-document.addEventListener('mouseup',()=>ring.classList.remove('clicked'));
+      // Reading progress
+      const progressBar = document.querySelector('.scroll-progress span');
+      const siteNav = document.getElementById('site-nav');
+      const updateProgress = () => {
+        const max = document.documentElement.scrollHeight - innerHeight;
+        progressBar.style.transform = `scaleX(${max > 0 ? scrollY / max : 0})`;
+        siteNav?.classList.toggle('scrolled', scrollY > 36);
+      };
+      addEventListener('scroll', updateProgress, { passive: true });
+      updateProgress();
 
-/* ── Nav scroll ── */
-window.addEventListener('scroll',()=>{
-  document.getElementById('main-nav').classList.toggle('scrolled',window.scrollY>60);
-});
-
-/* ── Hero particle canvas ── */
-(function(){
-  const canvas=document.getElementById('hero-canvas');
-  const ctx=canvas.getContext('2d');
-  let W,H,particles=[];
-  function resize(){ W=canvas.width=canvas.offsetWidth; H=canvas.height=canvas.offsetHeight; }
-  resize();
-  window.addEventListener('resize',()=>{ resize(); init(); });
-  function Particle(){
-    this.x=Math.random()*W; this.y=Math.random()*H;
-    this.vx=(Math.random()-.5)*.25; this.vy=(Math.random()-.5)*.25;
-    this.r=Math.random()*1.2+.3; this.a=Math.random()*.4+.05;
-  }
-  function init(){ particles=[]; const n=Math.floor(W*H/14000); for(let i=0;i<n;i++)particles.push(new Particle()); }
-  init();
-  let mouseX=W/2,mouseY=H/2;
-  document.addEventListener('mousemove',e=>{mouseX=e.clientX;mouseY=e.clientY;});
-  function draw(){
-    ctx.clearRect(0,0,W,H);
-    particles.forEach(p=>{
-      const dx=p.x-mouseX,dy=p.y-mouseY;
-      const dist=Math.sqrt(dx*dx+dy*dy);
-      if(dist<120){p.vx+=dx/dist*.04;p.vy+=dy/dist*.04;}
-      p.vx*=.98;p.vy*=.98;
-      p.x+=p.vx;p.y+=p.vy;
-      if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;
-      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-      ctx.fillStyle=`rgba(201,169,110,${p.a})`;ctx.fill();
-    });
-    for(let i=0;i<particles.length;i++){
-      for(let j=i+1;j<particles.length;j++){
-        const dx=particles[i].x-particles[j].x;
-        const dy=particles[i].y-particles[j].y;
-        const d=Math.sqrt(dx*dx+dy*dy);
-        if(d<100){
-          ctx.beginPath();ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);
-          ctx.strokeStyle=`rgba(201,169,110,${.08*(1-d/100)})`;ctx.lineWidth=.5;ctx.stroke();
-        }
-      }
-    }
-    requestAnimationFrame(draw);
-  }
-  draw();
-})();
-
-/* ── Typewriter ── */
-(function(){
-  const el=document.getElementById('typewriter-text');
-  const phrases=['Technical Systems Analyst','Business Technology Leader','Business Technology Management Major','Systems Thinker & Strategist'];
-  let pi=0,ci=0,deleting=false,wait=0;
-  function tick(){
-    const phrase=phrases[pi];
-    if(!deleting){
-      el.textContent=phrase.slice(0,ci+1); ci++;
-      if(ci===phrase.length){deleting=true;wait=60;setTimeout(tick,1800);return;}
-    } else {
-      if(wait>0){wait--;setTimeout(tick,30);return;}
-      el.textContent=phrase.slice(0,ci-1); ci--;
-      if(ci===0){deleting=false;pi=(pi+1)%phrases.length;}
-    }
-    setTimeout(tick,deleting?45:80);
-  }
-  setTimeout(tick,1400);
-})();
-
-/* ── Scroll Reveal ── */
-const revealObs=new IntersectionObserver(entries=>{
-  entries.forEach((e,i)=>{
-    if(e.isIntersecting){setTimeout(()=>e.target.classList.add('up'),i*90);revealObs.unobserve(e.target);}
-  });
-},{threshold:.08});
-document.querySelectorAll('.reveal').forEach(el=>revealObs.observe(el));
-
-/* ── Animated counters ── */
-function animCount(el){
-  const target=+el.dataset.count,suffix=el.dataset.suffix||'',text=el.dataset.text;
-  if(text){el.textContent=text;return;}
-  let start=null;const dur=1400;
-  function step(ts){
-    if(!start)start=ts;
-    const prog=Math.min((ts-start)/dur,1);
-    const ease=1-Math.pow(1-prog,3);
-    el.textContent=Math.round(ease*target)+suffix;
-    if(prog<1)requestAnimationFrame(step);
-  }
-  requestAnimationFrame(step);
-}
-const countObs=new IntersectionObserver(entries=>{
-  entries.forEach(e=>{
-    if(e.isIntersecting){e.target.querySelectorAll('[data-count],[data-text]').forEach(animCount);countObs.unobserve(e.target);}
-  });
-},{threshold:.3});
-document.querySelectorAll('.stat-strip').forEach(el=>countObs.observe(el));
-
-/* ── Skills tabs ── */
-document.querySelectorAll('.skill-tab').forEach(tab=>{
-  tab.addEventListener('click',()=>{
-    document.querySelectorAll('.skill-tab').forEach(t=>t.classList.remove('active'));
-    document.querySelectorAll('.skill-panel').forEach(p=>p.classList.remove('active'));
-    tab.classList.add('active');
-    const panel=document.getElementById('tab-'+tab.dataset.tab);
-    panel.classList.add('active');
-    panel.querySelectorAll('.skill-bar-fill').forEach(bar=>{
-      bar.style.width='0';
-      setTimeout(()=>{bar.style.width=bar.dataset.width+'%';},80);
-    });
-  });
-});
-const skillsObs=new IntersectionObserver(entries=>{
-  entries.forEach(e=>{
-    if(e.isIntersecting){
-      document.querySelectorAll('.skill-panel.active .skill-bar-fill').forEach(bar=>{
-        setTimeout(()=>{bar.style.width=bar.dataset.width+'%';},200);
+      // Split multi-line headings into masked lines for the reveal
+      document.querySelectorAll('.js-reveal h1, .js-reveal h2, .case-meta h3').forEach(el => {
+        el.innerHTML = el.innerHTML.split(/<br\s*\/?>/i).map((t, i) => `<span class="ln" style="--i:${i}"><span>${t}</span></span>`).join('');
       });
-      skillsObs.unobserve(e.target);
-    }
-  });
-},{threshold:.2});
-const skillsEl=document.querySelector('.skill-panels');
-if(skillsEl)skillsObs.observe(skillsEl);
 
-/* ── Timeline expand ── */
-document.querySelectorAll('.tl-expand-btn').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    const drawer=document.getElementById(btn.dataset.target);
-    const isOpen=drawer.classList.contains('open');
-    if(isOpen){drawer.style.maxHeight='0';drawer.classList.remove('open');btn.classList.remove('open');}
-    else{drawer.style.maxHeight=drawer.scrollHeight+'px';drawer.classList.add('open');btn.classList.add('open');}
-  });
-});
+      // Intersection-based reveals
+      const revealItems = [...document.querySelectorAll('.js-reveal')];
+      if (reduced) revealItems.forEach(el => el.classList.add('is-visible'));
+      else {
+        const observer = new IntersectionObserver(entries => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('is-visible');
+              observer.unobserve(entry.target);
+            }
+          });
+        }, { threshold: .14, rootMargin: '0px 0px -8% 0px' });
+        revealItems.forEach((el, i) => {
+          el.style.setProperty('--reveal-delay', `${Math.min((i % 4) * 70, 210)}ms`);
+          observer.observe(el);
+        });
+      }
 
-/* ── Project track ── */
-(function(){
-  const track=document.getElementById('proj-track');
-  const cards=track.querySelectorAll('.proj-card');
-  const dotsWrap=document.getElementById('track-dots');
-  let current=0;
-  cards.forEach((_,i)=>{
-    const d=document.createElement('div');
-    d.className='track-dot'+(i===0?' active':'');
-    d.addEventListener('click',()=>goTo(i));
-    dotsWrap.appendChild(d);
-  });
-  function cardW(){ return cards[0].offsetWidth+24; }
-  function goTo(i){
-    current=Math.max(0,Math.min(i,cards.length-1));
-    track.scrollTo({left:current*cardW(),behavior:'smooth'});
-    dotsWrap.querySelectorAll('.track-dot').forEach((d,j)=>d.classList.toggle('active',j===current));
-  }
-  document.getElementById('proj-prev').addEventListener('click',()=>goTo(current-1));
-  document.getElementById('proj-next').addEventListener('click',()=>goTo(current+1));
-  let dragging=false,startX=0,scrollStart=0;
-  track.addEventListener('mousedown',e=>{dragging=true;startX=e.pageX;scrollStart=track.scrollLeft;});
-  window.addEventListener('mousemove',e=>{if(!dragging)return;track.scrollLeft=scrollStart-(e.pageX-startX);});
-  window.addEventListener('mouseup',()=>{
-    if(!dragging)return;dragging=false;
-    current=Math.round(track.scrollLeft/cardW());
-    dotsWrap.querySelectorAll('.track-dot').forEach((d,j)=>d.classList.toggle('active',j===current));
-  });
-  let touchStart=0;
-  track.addEventListener('touchstart',e=>{touchStart=e.touches[0].clientX;});
-  track.addEventListener('touchend',e=>{
-    const diff=touchStart-e.changedTouches[0].clientX;
-    if(Math.abs(diff)>50)goTo(diff>0?current+1:current-1);
-  });
-})();
+      // Active navigation chapter
+      const navLinks = [...document.querySelectorAll('.site-nav nav a')];
+      const navTargets = navLinks.map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+      const navObserver = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === `#${entry.target.id}`));
+        });
+      }, { rootMargin: '-35% 0px -55% 0px' });
+      navTargets.forEach(el => navObserver.observe(el));
 
-/* ── Contact form ── */
-function handleSubmit(e){
-  e.preventDefault();
-  const btn=e.target.querySelector('button[type=submit] span');
-  btn.textContent='Sent ✓';
-  setTimeout(()=>btn.textContent='Send message',3000);
-}
+      // Pointer orb + small magnetic response
+      const orb = document.querySelector('.cursor-orb');
+      if (!reduced && matchMedia('(pointer:fine)').matches) {
+        let tx = innerWidth / 2, ty = innerHeight / 2, x = tx, y = ty;
+        addEventListener('pointermove', e => { tx = e.clientX; ty = e.clientY; orb.classList.add('show'); });
+        const loop = () => {
+          x += (tx - x) * .14; y += (ty - y) * .14;
+          orb.style.transform = `translate3d(${x}px,${y}px,0) translate(-50%,-50%)`;
+          requestAnimationFrame(loop);
+        }; loop();
+        document.querySelectorAll('a,.lens').forEach(el => {
+          el.addEventListener('pointerenter', () => orb.classList.add('hover'));
+          el.addEventListener('pointerleave', () => orb.classList.remove('hover'));
+        });
+      }
 
-/* ── Magnetic buttons ── */
-document.querySelectorAll('.btn-primary,.btn-ghost').forEach(btn=>{
-  btn.addEventListener('mousemove',e=>{
-    const r=btn.getBoundingClientRect();
-    const x=e.clientX-r.left-r.width/2;
-    const y=e.clientY-r.top-r.height/2;
-    btn.style.transform=`translate(${x*.15}px,${y*.15}px)`;
-    btn.style.transition='transform .1s';
-  });
-  btn.addEventListener('mouseleave',()=>{
-    btn.style.transform='translate(0,0)';
-    btn.style.transition='transform .6s cubic-bezier(.25,.46,.45,.94)';
-  });
-});
-</script>
+      // Scroll-driven storytelling
+      const $ = (s, r = document) => r.querySelector(s);
+      const hero = $('.hero'), ai = $('.ai-chapter'), software = $('.software-chapter'), business = $('.business-chapter');
+      const convergence = $('.convergence'), triad = $('.triad'), stage = $('.convergence-stage');
+      const localProgress = el => { const r = el.getBoundingClientRect(); return clamp((innerHeight - r.top) / (innerHeight + r.height)); };
+      // Sticky scenes: progress covers only the distance the stage stays pinned.
+      const stickyProgress = el => { const r = el.getBoundingClientRect(); return clamp(-r.top / Math.max(1, r.height - innerHeight)); };
+      const ease = { out: t => 1 - Math.pow(1 - t, 3), io: t => t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2, back: t => 1 + 2.70158 * Math.pow(t - 1, 3) + 1.70158 * Math.pow(t - 1, 2) };
+
+      // Convergence scene: nodes arrive in their chapter colours, the triangle draws,
+      // branches reach the core, the core ignites, then the headline assembles.
+      const P = { ai: [50, 16], sw: [18, 75], biz: [82, 75] }, CORE = [50, 52];
+      const nodes = { ai: $('.triad-ai'), sw: $('.triad-software'), biz: $('.triad-business') };
+      const perim = [[$('.link-ai-software'), 'ai', 'sw'], [$('.link-ai-business'), 'ai', 'biz'], [$('.link-software-business'), 'sw', 'biz']];
+      const coreLinks = { ai: $('.core-ai'), sw: $('.core-software'), biz: $('.core-business') };
+      const fly = { ai: [0, -110, -8], sw: [-130, 70, -14], biz: [130, 70, 14] };
+      const coreEl = $('.triad-core'), pulses = [...triad.querySelectorAll('.pulse')];
+      const state = { m: 0, br: 0, lit: false };
+      const pos = k => { const m = state.m * .2; return [P[k][0] + (CORE[0] - P[k][0]) * m, P[k][1] + (CORE[1] - P[k][1]) * m]; };
+      const seg = (l, a, b, t) => { l.setAttribute('x1', a[0]); l.setAttribute('y1', a[1]); l.setAttribute('x2', a[0] + (b[0] - a[0]) * t); l.setAttribute('y2', a[1] + (b[1] - a[1]) * t); };
+
+      const headline = $('.convergence h2.split'), chars = [];
+      (function wrap(n) { [...n.childNodes].forEach(c => {
+        if (c.nodeType === 3) {
+          const f = document.createDocumentFragment();
+          [...c.textContent].forEach(ch => { const s = document.createElement('span'); s.className = 'ch'; s.textContent = ch === ' ' ? '\u00a0' : ch; chars.push(s); f.appendChild(s); });
+          c.replaceWith(f);
+        } else wrap(c);
+      }); })(headline);
+
+      function renderConvergence(cp) {
+        const g = ease.out(clamp(cp / .24)), per = clamp((cp - .14) / .22), br = clamp((cp - .30) / .20),
+              cr = clamp((cp - .44) / .18), m = ease.io(clamp((cp - .62) / .22)), tp = clamp((cp - .66) / .22), cc = clamp((cp - .86) / .12);
+        state.m = m; state.br = br;
+        const pa = {}; for (const k in P) pa[k] = pos(k);
+        for (const k in nodes) {
+          const n = nodes[k], f = fly[k], e = 1 - g;
+          n.style.left = pa[k][0] + '%'; n.style.top = pa[k][1] + '%';
+          n.style.setProperty('--fx', f[0] * e + 'px'); n.style.setProperty('--fy', f[1] * e + 'px');
+          n.style.setProperty('--fr', f[2] * e + 'deg'); n.style.setProperty('--fs', .7 + .3 * g);
+          n.style.setProperty('--fo', clamp(g * 2.2)); n.style.setProperty('--fill', clamp((g - .55) / .45));
+          n.classList.toggle('filled', g > .8);
+        }
+        perim.forEach(([l, a, b], i) => seg(l, pa[a], pa[b], clamp(per * 3 - i)));
+        for (const k in coreLinks) seg(coreLinks[k], pa[k], CORE, br);
+        coreEl.style.setProperty('--co', clamp(cr * 2));
+        coreEl.style.setProperty('--cs', .4 + .6 * ease.back(cr));
+        coreEl.style.setProperty('--spin', cp * 900 + 'deg');
+        const lit = cp > .6;
+        if (lit !== state.lit) { state.lit = lit; triad.classList.toggle('lit', lit); }
+        chars.forEach((c, i) => {
+          const p = clamp(tp * 1.9 - i * .085);
+          c.style.opacity = p; c.style.filter = `blur(${(1 - p) * 6}px)`;
+          c.style.transform = `translateY(${(1 - ease.out(p)) * .6}em) rotate(${(1 - p) * 8}deg)`;
+        });
+        headline.style.setProperty('--ul', clamp((tp - .75) / .25));
+        stage.style.setProperty('--cc', cc);
+      }
+
+      // Energy pulses travel node → core once the branches are drawn.
+      let inView = false;
+      new IntersectionObserver(e => { inView = e[0].isIntersecting; }).observe(convergence);
+      const keys = ['ai', 'sw', 'biz'];
+      const tick = t => {
+        if (inView && !reduced) pulses.forEach((p, i) => {
+          const a = pos(keys[i]), u = (t / 2000 + i / 3) % 1;
+          p.style.left = a[0] + (CORE[0] - a[0]) * u + '%'; p.style.top = a[1] + (CORE[1] - a[1]) * u + '%';
+          p.style.opacity = state.br > .98 ? Math.sin(u * Math.PI) : 0;
+        });
+        requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+
+      const pw = (v, ts, xs) => { // piecewise-linear map, clamped at both ends
+        if (v <= ts[0]) return xs[0];
+        for (let i = 1; i < ts.length; i++) if (v <= ts[i]) return xs[i - 1] + (xs[i] - xs[i - 1]) * (v - ts[i - 1]) / (ts[i] - ts[i - 1]);
+        return xs[xs.length - 1];
+      };
+      const entering = el => clamp(1 - el.getBoundingClientRect().top / innerHeight);
+
+      // HERO — a scan line sweeps the page; dots (and the words) it has passed fall into order.
+      const chaos = $('.chaos'), scan = $('.scan'), ems = document.querySelectorAll('.hero h1 em'), emA = ems[0], emB = ems[ems.length - 1];
+      emA.classList.add('em-problem'); emB.classList.add('em-production');
+      let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+      const dots = Array.from({ length: 96 }, (_, i) => {
+        const el = document.createElement('i'), big = i % 9 === 4, s = big ? 9 : 3 + rnd() * 3;
+        if (big) { el.className = 'a'; el.style.animationDelay = rnd() * 1.4 + 's'; }
+        el.style.width = el.style.height = s + 'px'; chaos.appendChild(el);
+        return { el, big, rx: rnd(), ry: rnd(), rot: (rnd() - .5) * 360, j: rnd() };
+      });
+      let W = innerWidth, H = innerHeight, ra = [0, 1], rb = [0, 1];
+      function measureHero() {
+        W = innerWidth; H = innerHeight;
+        const cols = W < 700 ? 8 : 12, rows = 96 / cols;
+        dots.forEach((d, i) => { d.tx = ((i % cols) + .5) / cols * W; d.ty = (Math.floor(i / cols) + .5) / rows * H; });
+        hero.style.setProperty('--ch', 0); hero.style.setProperty('--pr', 1); // measure undistorted
+        const a = emA.getBoundingClientRect(), b = emB.getBoundingClientRect();
+        ra = [a.left, Math.max(1, a.width)]; rb = [b.left, Math.max(1, b.width)];
+      }
+      function renderHero(hp) {
+        const s = clamp(hp / .82), sx = -150 + s * (W + 300);
+        scan.style.setProperty('--sx', sx + 'px');
+        dots.forEach((d, i) => {
+          const o = clamp((sx - d.tx + d.j * 90) / 260), e = o * o * (3 - 2 * o), x0 = d.rx * W, y0 = d.ry * H;
+          const wob = (1 - e) * 10 * Math.sin(hp * 16 + i);
+          d.el.style.transform = `translate3d(${x0 + (d.tx - x0) * e}px,${y0 + (d.ty - y0) * e + wob}px,0) rotate(${(1 - e) * d.rot}deg)`;
+          d.el.style.borderRadius = 50 - 46 * e + '%';
+          if (!d.big) d.el.style.opacity = .45 - .25 * e;
+        });
+        hero.style.setProperty('--ch', clamp(1 - (sx - ra[0]) / ra[1]));
+        hero.style.setProperty('--pr', clamp((sx - rb[0]) / rb[1]));
+        hero.style.setProperty('--rp', s);
+        hero.style.setProperty('--cue', 1 - clamp(hp * 6));
+        hero.classList.toggle('done', hp > .92);
+      }
+
+      // SOFTWARE — one request travels the stack; each stage lights up and logs as the packet arrives.
+      const pipe = $('.pipeline'), stages = [...pipe.querySelectorAll('.stage')], logEls = stages.map(s => $('small', s)), logTxt = logEls.map(l => l.dataset.t);
+      function renderSoftware(sw) {
+        const pp = clamp((sw - .10) / .76), n = stages.length - 1;
+        pipe.style.setProperty('--pp', pp);
+        pipe.style.setProperty('--rot', pp * 540 + 'deg');
+        stages.forEach((st, i) => {
+          const t = pp * n - i;
+          st.classList.toggle('on', t >= -.03);
+          logEls[i].textContent = logTxt[i].slice(0, Math.round(clamp(t * 2.5) * logTxt[i].length));
+        });
+        pipe.classList.toggle('done', pp > .995);
+      }
+
+      // BUSINESS — stakeholder notes land in a requirements doc, get ticked off in UAT, then it ships.
+      const reqs = [...business.querySelectorAll('.req')], card = $('.req-card', business), cnt = $('.req-count', business), stamp = $('.stamp', business), barU = $('.bar u', business);
+      const plDots = [...business.querySelectorAll('.process-line i')], plEl = $('.process-line', business);
+      const notes = [[150, -90, 9], [190, 30, -7], [130, 110, 6], [210, -40, -10], [160, 90, 8]], stops = [.02, .28, .52, .84];
+      function renderBusiness(bp, en = 1) {
+        card.style.opacity = clamp(en * 1.4);
+        let ok = 0;
+        reqs.forEach((r, i) => {
+          const p = ease.out(clamp((bp - .03 - i * .05) / .22)), f = notes[i % notes.length], q = 1 - p, done = bp > .50 + i * .075;
+          r.style.setProperty('--fly', q);
+          r.style.transform = `translate(${f[0] * q}px,${f[1] * q}px) rotate(${f[2] * q}deg)`;
+          r.style.opacity = clamp(p * 2.5);
+          r.classList.toggle('ok', done); if (done) ok++;
+        });
+        cnt.textContent = `${ok} / ${reqs.length}`;
+        barU.style.transform = `scaleX(${clamp((bp - .48) / .42)})`;
+        const s = clamp((bp - .88) / .09);
+        stamp.style.opacity = clamp(s * 3);
+        stamp.style.transform = `rotate(${-8 + (1 - s) * 12}deg) scale(${1 + (1 - ease.out(s)) * 1.8})`;
+        plEl.style.setProperty('--story-p', pw(bp, [0, ...stops, 1], [0, .125, .375, .625, .875, 1]));
+        plDots.forEach((el, i) => {
+          const p = clamp((bp - stops[i]) / .08);
+          el.style.transform = `translateY(-4px) scale(${.45 + p * .75})`; el.style.opacity = .25 + p * .75; el.style.setProperty('--lab', .25 + p * .75);
+        });
+      }
+
+      function animateStory() {
+        if (reduced) { renderHero(1); renderSoftware(1); renderBusiness(1); renderConvergence(1); return; }
+        renderHero(stickyProgress(hero));
+
+        const ap = localProgress(ai), ring = $('.ambient-ai', ai);
+        ai.style.setProperty('--story-p', ap);
+        ring.style.setProperty('--ring-scale', .6 + ap * .8);
+        ring.style.setProperty('--ring-rotate', `${ap * 140}deg`);
+
+        const sw = stickyProgress(software); software.style.setProperty('--story-p', sw); renderSoftware(sw);
+        const bp = stickyProgress(business); business.style.setProperty('--story-p', bp); renderBusiness(bp, entering(business));
+        renderConvergence(stickyProgress(convergence));
+      }
+      const refresh = () => { measureHero(); animateStory(); };
+      addEventListener('scroll', animateStory, { passive: true });
+      addEventListener('resize', refresh);
+      document.fonts && document.fonts.ready.then(refresh);
+      refresh();
+
+      // Case study lens focus: hover/focus one perspective, quiet the others.
+      document.querySelectorAll('.lens').forEach(lens => {
+        const grid = lens.parentElement;
+        const on = () => { grid.classList.add('has-focus'); lens.classList.add('focused'); };
+        const off = () => { grid.classList.remove('has-focus'); lens.classList.remove('focused'); };
+        lens.addEventListener('mouseenter', on); lens.addEventListener('mouseleave', off);
+        lens.addEventListener('focusin', on); lens.addEventListener('focusout', off);
+      });
+    })();
+  </script>
 </body>
 </html>
